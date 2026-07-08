@@ -69,10 +69,11 @@ export async function generateQuote(language = 'ru') {
       const prompt = `Generate a powerful, deeply inspiring and motivational quote in ${targetLang} language.
 Rules:
 1. The quote must be a famous quote from a great, well-known historical or contemporary person.
-2. The main text of the quote must be exactly ${lines} lines long (separated by newlines \\n).
+2. The main text of the quote must be exactly ${lines} lines long. Use real line breaks to separate lines (press Enter), do NOT write the characters backslash-n.
 3. At the end of the quote, add a blank line, and then on a new line, add the author's name formatted as '— Author Name' (translated to the target language, e.g. '— Стив Джобс' or '— Albert Einstein').
 4. The text should feel modern, encouraging, and emotionally resonant.
-5. Return ONLY the text of the quote and the author name. Do not wrap the whole response in quotes, markdown code blocks, or include introductory/explanatory sentences.`;
+5. Return ONLY the text of the quote and the author name. Do not wrap the whole response in quotes, markdown code blocks, or include introductory/explanatory sentences.
+6. IMPORTANT: Never use literal backslash-n in your response. Only use real line breaks.`;
 
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
@@ -93,8 +94,10 @@ Rules:
       }
 
       const data = await response.json();
-      const text = data.choices?.[0]?.message?.content?.trim();
+      let text = data.choices?.[0]?.message?.content?.trim();
       if (text) {
+        // Replace any literal \n that AI might still output with real newlines
+        text = text.replace(/\\n/g, '\n');
         return text;
       }
     } catch (error) {
@@ -112,14 +115,17 @@ Rules:
       const prompt = `Generate a powerful, deeply inspiring and motivational quote in ${targetLang} language.
 Rules:
 1. The quote must be a famous quote from a great, well-known historical or contemporary person.
-2. The main text of the quote must be exactly ${lines} lines long (separated by newlines \\n).
+2. The main text of the quote must be exactly ${lines} lines long. Use real line breaks to separate lines (press Enter), do NOT write the characters backslash-n.
 3. At the end of the quote, add a blank line, and then on a new line, add the author's name formatted as '— Author Name' (translated to the target language, e.g. '— Стив Джобс' or '— Albert Einstein').
 4. The text should feel modern, encouraging, and emotionally resonant.
-5. Return ONLY the text of the quote and the author name. Do not wrap the whole response in quotes, markdown code blocks, or include introductory/explanatory sentences.`;
+5. Return ONLY the text of the quote and the author name. Do not wrap the whole response in quotes, markdown code blocks, or include introductory/explanatory sentences.
+6. IMPORTANT: Never use literal backslash-n in your response. Only use real line breaks.`;
 
       const result = await aiModel.generateContent(prompt);
-      const text = result.response.text().trim();
+      let text = result.response.text().trim();
       if (text && text.split('\n').length >= 1) {
+        // Replace any literal \n that AI might still output with real newlines
+        text = text.replace(/\\n/g, '\n');
         return text;
       }
     } catch (error) {
